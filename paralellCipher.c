@@ -5,7 +5,8 @@
 #include <string.h>
 #include <time.h>
 
-//clang -Xpreprocessor -fopenmp -lomp staticCipher.c
+//clang -Xpreprocessor -fopenmp -lomp paralellCipher.c
+
 
 int main()
 {
@@ -13,6 +14,7 @@ int main()
   double start_time = omp_get_wtime();
   clock_t t;
   t = clock();
+
 
 
   char ch_arr[200][70] = {
@@ -215,10 +217,12 @@ int main()
       "dyladndyladndfgdfdfsgsdfgsdfg",
       "dyladndyladndfgdfdfsgsdfgsdfg",
       "dyladndyladndfgdfdfsgsdfgsdfg",
-      "zdyladndyladndfgdfdfsgsdfgsdfg",
+      "dyladndyladndfgdfdfsgsdfgsdfg",
   };
   int rows = sizeof(ch_arr) / sizeof(ch_arr[0]);
 
+#pragma omp parallel for schedule(dynamic)
+  //run time is 0.000265 without oimp
   for (size_t passwordIndex = 0; passwordIndex < rows; passwordIndex++)
   {
 
@@ -231,6 +235,7 @@ int main()
     int possibleKey;
     char decryptedMessage[70];
 
+    //#pragma omp parallel for schedule(static, 256) //shared(i) private(x) reduction(+:pi)
     for (i = 0; i < length; ++i) // loop through the string
     {
       ch = message[i]; //each char in message
@@ -241,7 +246,7 @@ int main()
 
         if (ch > 'z') //once the key is added if char is > z
         {
-          ch = ch - 'z' + 'a' - 1; //set to n (key) spaces forward from A
+          ch = ch - 'z' + 'a' - 1; //set to a
         }
 
         message[i] = ch;
@@ -259,6 +264,9 @@ int main()
       }
     }
 
+    // printf("Encrypted message: %s\n", message);
+
+    // #pragma omp parallel for shared(message) private(possibleKey, i) //schedule(static, 256) //shared(i) private(x) reduction(+:pi)
     for (possibleKey = 1; possibleKey < 27; ++possibleKey)
     {
       for (i = 0; i < length; ++i)
@@ -294,17 +302,13 @@ int main()
 
   //printf("Encrypted message: %s\n", message);
 
-  //printf("Encrypted message: %s\n", message);
 
   t = clock() - t;
   double processorTime = ((double)t) / CLOCKS_PER_SEC; // calculate the elapsed time
   printf("Processor Time: %f\n", processorTime);
-  
-  double totalRunTime = omp_get_wtime() - start_time;
+
+    double totalRunTime = omp_get_wtime() - start_time;
   printf("Total Run Time: %f\n", totalRunTime);
 
   return 0;
 }
-//0.000822
-//0.001127
-//0.000973
