@@ -14,6 +14,7 @@ int main()
   double start_time = omp_get_wtime();
   clock_t t;
   t = clock();
+  omp_set_num_threads(4); //4 best so far
 
 
 
@@ -221,7 +222,7 @@ int main()
   };
   int rows = sizeof(ch_arr) / sizeof(ch_arr[0]);
 
-#pragma omp parallel for schedule(dynamic)
+#pragma omp parallel for schedule(static, 15)
   //run time is 0.000265 without oimp
   for (size_t passwordIndex = 0; passwordIndex < rows; passwordIndex++)
   {
